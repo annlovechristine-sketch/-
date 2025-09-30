@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>語音導覽 APP</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .player {
+      width: 95%;
+      max-width: 400px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 25px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    .cover {
+      width: 100%;
+      height: 220px;
+      border-radius: 20px;
+      object-fit: cover;
+      margin-bottom: 15px;
+    }
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .progress-container {
+      width: 100%;
+      height: 8px;
+      background: #eee;
+      border-radius: 5px;
+      margin: 15px 0;
+      cursor: pointer;
+    }
+    .progress {
+      height: 100%;
+      width: 0;
+      background: #007aff;
+      border-radius: 5px;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      margin-top: 10px;
+    }
+    .btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      background: #007aff;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #005bb5;
+    }
+    .time {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #555;
+    }
+    .playlist {
+      margin-top: 15px;
+      text-align: left;
+      max-height: 200px;
+      overflow-y: auto;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+    .playlist-item {
+      padding: 8px 12px;
+      margin: 5px 0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .playlist-item:hover {
+      background: #f0f0f0;
+    }
+    .active {
+      background: #007aff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="player">
+    <img id="cover" class="cover" src="cover1.jpg" alt="封面圖片">
+    <div class="title" id="title">語音導覽 - 範例音檔</div>
+    <audio id="audio"></audio>
+
+    <div class="progress-container" id="progress-container">
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <div class="time">
+      <span id="current-time">0:00</span>
+      <span id="duration">0:00</span>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="prev">⏮</button>
+      <button class="btn" id="play">▶</button>
+      <button class="btn" id="next">⏭</button>
+    </div>
+
+    <div class="playlist" id="playlist"></div>
+  </div>
+
+  <script>
+    const audio = document.getElementById('audio');
+    const playBtn = document.getElementById('play');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    const progress = document.getElementById('progress');
+    const progressContainer = document.getElementById('progress-container');
+    const currentTimeEl = document.getElementById('current-time');
+    const durationEl = document.getElementById('duration');
+    const titleEl = document.getElementById('title');
+    const playlistEl = document.getElementById('playlist');
+    const coverEl = document.getElementById('cover');
+
+    // 這裡放你的語音檔和封面圖片
+    const tracks = [
+      { title: "導覽 01 - 夜鷺", src: "夜鷺.mp3", cover: "01夜鷺.jpg" },
+      { title: "導覽 02 - 翠鳥", src: "翠鳥.mp3", cover: "02翠鳥.jpg" },
+      { title: "導覽 03 - 結尾", src: "voice3.mp3", cover: "cover3.jpg" }
+    ];
+    let trackIndex = 0;
+
+    function loadTrack(index) {
+      audio.src = tracks[index].src;
+      titleEl.textContent = tracks[index].title;
+      coverEl.src = tracks[index].cover;
+      highlightActive(index);
+      audio.load();
+    }
+
+    function renderPlaylist() {
+      playlistEl.innerHTML = "";
+      tracks.forEach((track, index) => {
+        const div = document.createElement("div");
+        div.classList.add("playlist-item");
+        if (index === trackIndex) div.classList.add("active");
+        div.textContent = track.title;
+        div.addEventListener("click", () => {
+          trackIndex = index;
+          loadTrack(trackIndex);
+          audio.play();
+          playBtn.textContent = "⏸";
+        });
+        playlistEl.appendChild(div);
+      });
+    }
+
+    function highlightActive(index) {
+      const items = document.querySelectorAll(".playlist-item");
+      items.forEach((item, i) => {
+        item.classList.toggle("active", i === index);
+      });
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+        playBtn.textContent = '⏸';
+      } else {
+        audio.pause();
+        playBtn.textContent = '▶';
+      }
+    });
+
+    prevBtn.addEventListener('click', () => {
+      trackIndex = (trackIndex - 1 + tracks.length) % tracks.length;
+      loadTrack(trackIndex);
+      audio.play();
+      playBtn.textContent = '⏸';
+    });
+
+    nextBtn.addEventListener('click', () => {
+      trackIndex = (trackIndex + 1) % tracks.length;
+      loadTrack(trackIndex);
+      audio.play();
+      playBtn.textContent = '⏸';
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      const progressPercent = (audio.currentTime / audio.duration) * 100;
+      progress.style.width = `${progressPercent}%`;
+      updateTime();
+    });
+
+    progressContainer.addEventListener('click', (e) => {
+      const width = progressContainer.clientWidth;
+      const clickX = e.offsetX;
+      const duration = audio.duration;
+      audio.currentTime = (clickX / width) * duration;
+    });
+
+    function updateTime() {
+      currentTimeEl.textContent = formatTime(audio.currentTime);
+      durationEl.textContent = formatTime(audio.duration);
+    }
+
+    function formatTime(time) {
+      if (isNaN(time)) return "0:00";
+      const minutes = Math.floor(time / 60);
+      const seconds = Math.floor(time % 60).toString().padStart(2, '0');
+      return `${minutes}:${seconds}`;
+    }
+
+    audio.addEventListener('loadedmetadata', updateTime);
+    audio.addEventListener('ended', () => {
+      trackIndex = (trackIndex + 1) % tracks.length;
+      loadTrack(trackIndex);
+      audio.play();
+    });
+
+    loadTrack(trackIndex);
+    renderPlaylist();
+  </script>
+</body>
+</html>
