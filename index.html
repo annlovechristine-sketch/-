@@ -1,241 +1,277 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>語音導覽 APP</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f5f5f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .player {
-      width: 95%;
-      max-width: 400px;
-      background: #fff;
-      padding: 15px;
-      border-radius: 25px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      text-align: center;
-    }
-    .cover {
-      width: 100%;
-      height: 220px;
-      border-radius: 20px;
-      object-fit: cover;
-      margin-bottom: 15px;
-    }
-    .title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .progress-container {
-      width: 100%;
-      height: 8px;
-      background: #eee;
-      border-radius: 5px;
-      margin: 15px 0;
-      cursor: pointer;
-    }
-    .progress {
-      height: 100%;
-      width: 0;
-      background: #007aff;
-      border-radius: 5px;
-    }
-    .controls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 20px;
-      margin-top: 10px;
-    }
-    .btn {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      border: none;
-      background: #007aff;
-      color: #fff;
-      font-size: 20px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .btn:hover {
-      background: #005bb5;
-    }
-    .time {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: #555;
-    }
-    .playlist {
-      margin-top: 15px;
-      text-align: left;
-      max-height: 200px;
-      overflow-y: auto;
-      border-top: 1px solid #eee;
-      padding-top: 10px;
-    }
-    .playlist-item {
-      padding: 8px 12px;
-      margin: 5px 0;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .playlist-item:hover {
-      background: #f0f0f0;
-    }
-    .active {
-      background: #007aff;
-      color: white;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>香山故事館</title>
+<style>
+  body { font-family: Gungsuh; margin:0; padding:0; background: url('bg.jpg') no-repeat center center fixed;
+  background-size: cover; display:flex; justify-content:center; align-items:center; height:100vh; }
+  .player { width:95%; max-width:400px; background:#fff; padding:15px; border-radius:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:center; }
+  .cover { width:100%; height:220px; border-radius:20px; object-fit:cover; margin-bottom:15px; }
+  .title { font-size:18px; font-weight:bold; margin-bottom:10px; }
+  .description { font-size:14px; color:#0d2447; line-height:1.5; text-align:justify; margin-bottom:15px; }
+  .description span { transition: color 0.3s; }
+  .description span.active { color:red; }
+  .progress-container { width:100%; height:8px; background:#eee; border-radius:5px; margin:15px 0; cursor:pointer; position:relative; }
+  .progress { height:100%; width:0; background:#373535; border-radius:5px; }
+  .controls { display:flex; justify-content:center; align-items:center; gap:20px; margin-top:10px; }
+  .btn { width:50px; height:50px; border:none; background:none; padding:0; cursor:pointer; }
+  .btn img { width:100%; height:100%; object-fit:contain; }
+  .time { display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#0d2447; margin-top:5px; }
+  .playlist { margin-top:15px; text-align:left; max-height:200px; overflow-y:auto; border-top:1px solid #eee; padding-top:10px; }
+  .playlist-item { padding:8px 12px; margin:5px 0; border-radius:10px; cursor:pointer; transition: background 0.3s; }
+  .playlist-item:hover { background:#e4dc99; }
+  .speed-control { font-size:12px; padding:2px 6px; border-radius:5px; border:1px solid #ccc; }
+</style>
 </head>
 <body>
-  <div class="player">
-    <img id="cover" class="cover" src="cover1.jpg" alt="封面圖片">
-    <div class="title" id="title">語音導覽 - 範例音檔</div>
-    <audio id="audio"></audio>
+<div class="player">
+  <img id="cover" class="cover" src="cover1.jpg" alt="封面圖片">
+  <div class="title" id="title">香山故事館</div>
+  <div class="description" id="description"></div>
+  <audio id="audio"></audio>
 
-    <div class="progress-container" id="progress-container">
-      <div class="progress" id="progress"></div>
-    </div>
-
-    <div class="time">
-      <span id="current-time">0:00</span>
-      <span id="duration">0:00</span>
-    </div>
-
-    <div class="controls">
-      <button class="btn" id="prev">⏮</button>
-      <button class="btn" id="play">▶</button>
-      <button class="btn" id="next">⏭</button>
-    </div>
-
-    <div class="playlist" id="playlist"></div>
+  <div class="progress-container" id="progress-container">
+    <div class="progress" id="progress"></div>
   </div>
 
-  <script>
-    const audio = document.getElementById('audio');
-    const playBtn = document.getElementById('play');
-    const prevBtn = document.getElementById('prev');
-    const nextBtn = document.getElementById('next');
-    const progress = document.getElementById('progress');
-    const progressContainer = document.getElementById('progress-container');
-    const currentTimeEl = document.getElementById('current-time');
-    const durationEl = document.getElementById('duration');
-    const titleEl = document.getElementById('title');
-    const playlistEl = document.getElementById('playlist');
-    const coverEl = document.getElementById('cover');
+  <div class="time">
+    <span id="current-time">0:00</span>
+    <div style="display:flex; align-items:center; gap:5px;">
+      <span id="duration">0:00</span>
+      <select id="speed" class="speed-control">
+        <option value="0.75">0.75x</option>
+        <option value="1" selected>1x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2">2x</option>
+      </select>
+    </div>
+  </div>
 
-    // 這裡放你的語音檔和封面圖片
-    const tracks = [
-      { title: "導覽 01 - 夜鷺", src: "夜鷺.mp3", cover: "01夜鷺.jpg" },
-      { title: "導覽 02 - 翠鳥", src: "翠鳥.mp3", cover: "02翠鳥.jpg" },
-      { title: "導覽 03 - 結尾", src: "voice3.mp3", cover: "cover3.jpg" }
-    ];
-    let trackIndex = 0;
+  <!-- 控制鍵 (改成圖片) -->
+  <div class="controls">
+    <button class="btn" id="prev"><img src="prev.png" alt="上一首"></button>
+    <button class="btn" id="play"><img src="play.png" alt="播放"></button>
+    <button class="btn" id="next"><img src="next.png" alt="下一首"></button>
+  </div>
 
-    function loadTrack(index) {
-      audio.src = tracks[index].src;
-      titleEl.textContent = tracks[index].title;
-      coverEl.src = tracks[index].cover;
-      highlightActive(index);
-      audio.load();
-    }
+  <div class="playlist" id="playlist"></div>
+</div>
 
-    function renderPlaylist() {
-      playlistEl.innerHTML = "";
-      tracks.forEach((track, index) => {
-        const div = document.createElement("div");
-        div.classList.add("playlist-item");
-        if (index === trackIndex) div.classList.add("active");
-        div.textContent = track.title;
-        div.addEventListener("click", () => {
-          trackIndex = index;
-          loadTrack(trackIndex);
-          audio.play();
-          playBtn.textContent = "⏸";
-        });
-        playlistEl.appendChild(div);
-      });
-    }
+<script>
+const audio = document.getElementById('audio');
+const playBtn = document.getElementById('play');
+const prevBtn = document.getElementById('prev');
+const nextBtn = document.getElementById('next');
+const progress = document.getElementById('progress');
+const progressContainer = document.getElementById('progress-container');
+const currentTimeEl = document.getElementById('current-time');
+const durationEl = document.getElementById('duration');
+const titleEl = document.getElementById('title');
+const playlistEl = document.getElementById('playlist');
+const coverEl = document.getElementById('cover');
+const descriptionEl = document.getElementById('description');
+const speedEl = document.getElementById('speed');
 
-    function highlightActive(index) {
-      const items = document.querySelectorAll(".playlist-item");
-      items.forEach((item, i) => {
-        item.classList.toggle("active", i === index);
-      });
-    }
+const tracks = [
+  {
+    title: "導覽 01 - 夜鷺",
+    src: "夜鷺.mp3",
+    cover: "01夜鷺.jpg",
+    descriptionText: "一、夜鷺，雌雄鳥同型，頭頸較短，喙粗壯略向下彎。枕部有窄羽形成羽冠，翼圓，跗蹠前緣具盾鱗，後緣具網鱗，尾短，尾羽12枚。生活在海拔1,500公尺以下的河流、沼澤、池塘、河口附近。樹棲性，特別喜歡棲息在紅樹林、竹林及木麻黃防風林間。行時翼寬長，身體的形狀好像被壓縮過，比其它鷺類振翅的頻度高，會在飛行時鳴叫。",
+    duration: 35
+  },
+  {
+    title: "導覽 02 - 翠鳥",
+    src: "翠鳥.mp3",
+    cover: "02翠鳥.jpg",
+    descriptionText: "二、翠鳥，雌雄鳥體色相似，喙大而尖，體型粗短，尾短。頭上為暗綠色，有鮮綠色橫紋及藍斑點，耳羽白色，腮、喉白色，背面寶石藍色。腹面橙黃色。普遍生活於海拔1,200公尺以下的溪澗、河川、池塘、灌溉渠道的岸邊，也會出現在海邊、河口及紅樹林間。需要清澈及流和緩的水域。常貼近水面做直線飛行，飛行快速，雙翼不斷快速拍動。",
+    duration: 34
+  },
+  {
+    title: "導覽 03 - 麻雀",
+    src: "麻雀.mp3",
+    cover: "03麻雀.jpg",
+    descriptionText: "麻雀是常見的小型鳥類，群居性強，喜歡在農田和住家附近活動。",
+    duration: 12
+ },
+  {
+    title: "導覽 04 - 食蛇龜",
+    src: "食蛇龜.mp3",
+    cover: "04食蛇龜.jpg",
+    descriptionText: "二、翠鳥，雌雄鳥體色相似，喙大而尖，體型粗短，尾短。頭上為暗綠色，有鮮綠色橫紋及藍斑點，耳羽白色，腮、喉白色，背面寶石藍色。腹面橙黃色。普遍生活於海拔1,200公尺以下的溪澗、河川、池塘、灌溉渠道的岸邊，也會出現在海邊、河口及紅樹林間。需要清澈及流和緩的水域。常貼近水面做直線飛行，飛行快速，雙翼不斷快速拍動。",
+    duration: 34
+  },
+ {
+    title: "導覽 05 - 食蛇龜",
+    src: "食蛇龜.mp3",
+    cover: "04食蛇龜.jpg",
+    descriptionText: "二、翠鳥，雌雄鳥體色相似，喙大而尖，體型粗短，尾短。頭上為暗綠色，有鮮綠色橫紋及藍斑點，耳羽白色，腮、喉白色，背面寶石藍色。腹面橙黃色。普遍生活於海拔1,200公尺以下的溪澗、河川、池塘、灌溉渠道的岸邊，也會出現在海邊、河口及紅樹林間。需要清澈及流和緩的水域。常貼近水面做直線飛行，飛行快速，雙翼不斷快速拍動。",
+    duration: 34
+},
+{
+    title: "導覽 06 - 食蛇龜",
+    src: "食蛇龜.mp3",
+    cover: "04食蛇龜.jpg",
+    descriptionText: "二、翠鳥，雌雄鳥體色相似，喙大而尖，體型粗短，尾短。頭上為暗綠色，有鮮綠色橫紋及藍斑點，耳羽白色，腮、喉白色，背面寶石藍色。腹面橙黃色。普遍生活於海拔1,200公尺以下的溪澗、河川、池塘、灌溉渠道的岸邊，也會出現在海邊、河口及紅樹林間。需要清澈及流和緩的水域。常貼近水面做直線飛行，飛行快速，雙翼不斷快速拍動。",
+    duration: 34
+},
+{
+    title: "導覽 07 - 食蛇龜",
+    src: "食蛇龜.mp3",
+    cover: "04食蛇龜.jpg",
+    descriptionText: "二、翠鳥，雌雄鳥體色相似，喙大而尖，體型粗短，尾短。頭上為暗綠色，有鮮綠色橫紋及藍斑點，耳羽白色，腮、喉白色，背面寶石藍色。腹面橙黃色。普遍生活於海拔1,200公尺以下的溪澗、河川、池塘、灌溉渠道的岸邊，也會出現在海邊、河口及紅樹林間。需要清澈及流和緩的水域。常貼近水面做直線飛行，飛行快速，雙翼不斷快速拍動。",
+    duration: 34
+},
+{
+    title: "導覽 08 - 食蛇龜",
+    src: "食蛇龜.mp3",
+    cover: "04食蛇龜.jpg",
+    descriptionText: "二、翠鳥，雌雄鳥體色相似，喙大而尖，體型粗短，尾短。頭上為暗綠色，有鮮綠色橫紋及藍斑點，耳羽白色，腮、喉白色，背面寶石藍色。腹面橙黃色。普遍生活於海拔1,200公尺以下的溪澗、河川、池塘、灌溉渠道的岸邊，也會出現在海邊、河口及紅樹林間。需要清澈及流和緩的水域。常貼近水面做直線飛行，飛行快速，雙翼不斷快速拍動。",
+    duration: 34
+},
+{
+    title: "導覽 09 - 食蛇龜",
+    src: "食蛇龜.mp3",
+    cover: "04食蛇龜.jpg",
+    descriptionText: "二、翠鳥，雌雄鳥體色相似，喙大而尖，體型粗短，尾短。頭上為暗綠色，有鮮綠色橫紋及藍斑點，耳羽白色，腮、喉白色，背面寶石藍色。腹面橙黃色。普遍生活於海拔1,200公尺以下的溪澗、河川、池塘、灌溉渠道的岸邊，也會出現在海邊、河口及紅樹林間。需要清澈及流和緩的水域。常貼近水面做直線飛行，飛行快速，雙翼不斷快速拍動。",
+    duration: 34
+},
+{
+    title: "導覽 10 - 食蛇龜",
+    src: "食蛇龜.mp3",
+    cover: "04食蛇龜.jpg",
+    descriptionText: "二、翠鳥，雌雄鳥體色相似，喙大而尖，體型粗短，尾短。頭上為暗綠色，有鮮綠色橫紋及藍斑點，耳羽白色，腮、喉白色，背面寶石藍色。腹面橙黃色。普遍生活於海拔1,200公尺以下的溪澗、河川、池塘、灌溉渠道的岸邊，也會出現在海邊、河口及紅樹林間。需要清澈及流和緩的水域。常貼近水面做直線飛行，飛行快速，雙翼不斷快速拍動。",
+    duration: 34
+  }
+];
 
-    playBtn.addEventListener('click', () => {
-      if (audio.paused) {
-        audio.play();
-        playBtn.textContent = '⏸';
-      } else {
-        audio.pause();
-        playBtn.textContent = '▶';
-      }
-    });
+let trackIndex = 0;
 
-    prevBtn.addEventListener('click', () => {
-      trackIndex = (trackIndex - 1 + tracks.length) % tracks.length;
+// 描述逐句分割
+function renderDescription(track){
+  descriptionEl.innerHTML="";
+  const sentences = track.descriptionText.split(/(?<=[。！？])/);
+  const sentenceDuration = track.duration / sentences.length;
+  sentences.forEach((sentence,i)=>{
+    const span=document.createElement("span");
+    span.textContent=sentence;
+    span.dataset.start=(i*sentenceDuration).toFixed(2);
+    descriptionEl.appendChild(span);
+  });
+}
+
+function loadTrack(index){
+  const track=tracks[index];
+  audio.src=track.src;
+  titleEl.textContent=track.title;
+  coverEl.src=track.cover;
+  renderDescription(track);
+  audio.load();
+}
+
+function renderPlaylist(){
+  playlistEl.innerHTML="";
+  tracks.forEach((track,i)=>{
+    const div=document.createElement("div");
+    div.classList.add("playlist-item");
+    div.textContent=track.title;
+    div.addEventListener("click",()=>{
+      trackIndex=i;
       loadTrack(trackIndex);
       audio.play();
-      playBtn.textContent = '⏸';
+      updatePlayButton(true);
     });
+    playlistEl.appendChild(div);
+  });
+}
 
-    nextBtn.addEventListener('click', () => {
-      trackIndex = (trackIndex + 1) % tracks.length;
-      loadTrack(trackIndex);
-      audio.play();
-      playBtn.textContent = '⏸';
-    });
+// 更新播放鍵圖示
+function updatePlayButton(isPlaying){
+  const img = playBtn.querySelector("img");
+  if(isPlaying){
+    img.src="pause.png";
+    img.alt="暫停";
+  } else {
+    img.src="play.png";
+    img.alt="播放";
+  }
+}
 
-    audio.addEventListener('timeupdate', () => {
-      const progressPercent = (audio.currentTime / audio.duration) * 100;
-      progress.style.width = `${progressPercent}%`;
-      updateTime();
-    });
+// 播放控制
+playBtn.addEventListener("click",()=>{
+  if(audio.paused){ audio.play(); updatePlayButton(true); }
+  else { audio.pause(); updatePlayButton(false); }
+});
+prevBtn.addEventListener("click",()=>{
+  trackIndex=(trackIndex-1+tracks.length)%tracks.length;
+  loadTrack(trackIndex);
+  audio.play();
+  updatePlayButton(true);
+});
+nextBtn.addEventListener("click",()=>{
+  trackIndex=(trackIndex+1)%tracks.length;
+  loadTrack(trackIndex);
+  audio.play();
+  updatePlayButton(true);
+});
 
-    progressContainer.addEventListener('click', (e) => {
-      const width = progressContainer.clientWidth;
-      const clickX = e.offsetX;
-      const duration = audio.duration;
-      audio.currentTime = (clickX / width) * duration;
-    });
+// 播放速度控制
+speedEl.addEventListener("change",()=>{ audio.playbackRate=parseFloat(speedEl.value); });
 
-    function updateTime() {
-      currentTimeEl.textContent = formatTime(audio.currentTime);
-      durationEl.textContent = formatTime(audio.duration);
-    }
+// 進度與逐句高亮
+audio.addEventListener("timeupdate",()=>{
+  const progressPercent=(audio.currentTime/audio.duration)*100;
+  progress.style.width=`${progressPercent}%`;
+  updateTime();
 
-    function formatTime(time) {
-      if (isNaN(time)) return "0:00";
-      const minutes = Math.floor(time / 60);
-      const seconds = Math.floor(time % 60).toString().padStart(2, '0');
-      return `${minutes}:${seconds}`;
-    }
+  const spans = descriptionEl.querySelectorAll("span");
+  spans.forEach((span,i)=>{
+    const start=parseFloat(span.dataset.start);
+    const nextStart=(spans[i+1])?parseFloat(spans[i+1].dataset.start):Infinity;
+    span.classList.toggle("active", audio.currentTime>=start && audio.currentTime<nextStart);
+  });
+});
 
-    audio.addEventListener('loadedmetadata', updateTime);
-    audio.addEventListener('ended', () => {
-      trackIndex = (trackIndex + 1) % tracks.length;
-      loadTrack(trackIndex);
-      audio.play();
-    });
+// 滑鼠 & 手指拖曳控制
+function getX(e){ return e.touches?e.touches[0].clientX:e.clientX; }
+function updateProgress(e){
+  const rect=progressContainer.getBoundingClientRect();
+  const x=getX(e)-rect.left;
+  const percent=Math.min(Math.max(x/rect.width,0),1);
+  audio.currentTime=percent*audio.duration;
+  progress.style.width=`${percent*100}%`;
+}
+let isDragging=false;
+progressContainer.addEventListener('mousedown',e=>{isDragging=true; updateProgress(e);});
+progressContainer.addEventListener('touchstart',e=>{isDragging=true; updateProgress(e);});
+progressContainer.addEventListener('mousemove',e=>{if(isDragging) updateProgress(e);});
+progressContainer.addEventListener('touchmove',e=>{if(isDragging) updateProgress(e);});
+progressContainer.addEventListener('mouseup',e=>{if(isDragging){updateProgress(e);isDragging=false;}});
+progressContainer.addEventListener('touchend',()=>isDragging=false);
 
-    loadTrack(trackIndex);
-    renderPlaylist();
-  </script>
+function updateTime(){
+  currentTimeEl.textContent=formatTime(audio.currentTime);
+  durationEl.textContent=formatTime(audio.duration);
+}
+function formatTime(time){
+  if(isNaN(time)) return "0:00";
+  const minutes=Math.floor(time/60);
+  const seconds=Math.floor(time%60).toString().padStart(2,'0');
+  return `${minutes}:${seconds}`;
+}
+
+audio.addEventListener('loadedmetadata',updateTime);
+audio.addEventListener('ended',()=>{
+  trackIndex=(trackIndex+1)%tracks.length;
+  loadTrack(trackIndex);
+  audio.play();
+  updatePlayButton(true);
+});
+
+loadTrack(trackIndex);
+renderPlaylist();
+</script>
 </body>
 </html>
