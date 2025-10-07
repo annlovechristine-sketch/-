@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>香山故事館</title>
 <style>
-  body { font-family: 微軟正黑體; margin:0; padding:0; background: url('bg.jpg') no-repeat center top;
+  body { font-family: 微軟正黑體; color: #373535; margin:0; padding:0; background: url('bg.jpg') no-repeat center top;
   background-size: cover; display:flex; flex-direction: column; justify-content:center; align-items:center; height:100vh; }
   .player { width:95%; max-width:400px; background:#fff; padding:15px; border-radius:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); text-align:center; margin-bottom: 30px; }
 .player img {
@@ -18,7 +18,7 @@
 .player h2 {
   font-size: 1.3rem;
   font-weight: bold;
-  color: #222;
+  color: #f0f0f0;
   margin-bottom: 10px;
 }
 
@@ -266,7 +266,7 @@ function renderPlaylist(){
     // 左邊「導覽 01」
     const label=document.createElement("div");
     label.classList.add("playlist-label");
-    label.textContent = "導覽 " + (i+1).toString().padStart(2,'0');
+    label.textContent =" 導覽 " + (i+1).toString().padStart(2,'0');
 
     // 右邊標題「夜鷺」
     const title=document.createElement("div");
